@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import Home from './pages/Home.jsx'
 import ArcoProvider from './config/arcoConfig'
+import NewLoginModal from './components/NewLoginModal.jsx'
 import '@arco-design/web-react/dist/css/arco.css'
 
 class ErrorBoundary extends React.Component {
@@ -41,7 +42,35 @@ class ErrorBoundary extends React.Component {
 
 // 主应用组件
 function App() {
+<<<<<<< HEAD
   return <Home />
+=======
+  // 检查是否在登录页面
+  const isLoginPage = window.location.pathname === '/login' || 
+                     window.location.hash === '#/login' ||
+                     window.location.pathname === '/login.html'
+  
+  // 检查用户是否已登录
+  const isLoggedIn = localStorage.getItem('token') && localStorage.getItem('user')
+  
+  // 如果未登录且不在登录页面，跳转到登录页面
+  if (!isLoggedIn && !isLoginPage) {
+    window.location.hash = '#/login'
+  }
+  
+  // 如果已登录且在登录页面，跳转到主页
+  if (isLoggedIn && isLoginPage) {
+    window.location.hash = '#/'
+  }
+  
+  // 嵌入式布局：始终显示主应用背景，登录时叠加对话框
+  return (
+    <>
+      <Home />
+      {isLoginPage && !isLoggedIn && <LoginPage />}
+    </>
+  )
+>>>>>>> a6eb15f4e09d36baf24be33938a2e945a968961d
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
