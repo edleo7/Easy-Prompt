@@ -1,8 +1,21 @@
 # 📘 EasyPrompt - Prompt 增强与记忆管理平台
 
-## 项目简介
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
+[![React Version](https://img.shields.io/badge/react-18.3.1-blue.svg)](https://reactjs.org/)
+
+## 🎯 项目简介
 
 EasyPrompt 是一款面向企业与个人的 **Prompt 增强与记忆管理平台**。通过 **Memory Engine（记忆引擎）** 与 **Prompt Orchestration（提示词编排）**，解决大模型在上下文有限、提示词不稳定、知识库管理困难的问题。
+
+### ✨ 核心特性
+
+- 🧠 **智能记忆引擎** - 长期记忆管理和上下文优化
+- 🎨 **可视化提示词编排** - 拖拽式 Prompt 流程设计
+- 📚 **知识库管理** - 向量化文档存储与检索
+- 🔐 **用户认证系统** - JWT 令牌认证和权限管理
+- 🌐 **项目工作空间** - 多项目隔离和协作
+- 📊 **实时监控** - 系统性能和 API 调用监控
 
 ## 技术栈
 
