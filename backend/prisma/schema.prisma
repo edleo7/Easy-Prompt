@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = "postgresql://easyprompt:easyprompt123@localhost:5432/easyprompt"
 }
 
 model User {

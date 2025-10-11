@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import Home from './pages/Home.jsx'
-import LoginPage from './pages/LoginPage.jsx'
 import ArcoProvider from './config/arcoConfig'
 import '@arco-design/web-react/dist/css/arco.css'
 
@@ -42,30 +41,6 @@ class ErrorBoundary extends React.Component {
 
 // 主应用组件
 function App() {
-  // 检查是否在登录页面
-  const isLoginPage = window.location.pathname === '/login' || 
-                     window.location.hash === '#/login' ||
-                     window.location.pathname === '/login.html'
-  
-  // 检查用户是否已登录
-  const isLoggedIn = localStorage.getItem('token') && localStorage.getItem('user')
-  
-  // 如果未登录且不在登录页面，跳转到登录页面
-  if (!isLoggedIn && !isLoginPage) {
-    window.location.hash = '#/login'
-    return <LoginPage />
-  }
-  
-  // 如果已登录且在登录页面，跳转到主页
-  if (isLoggedIn && isLoginPage) {
-    window.location.hash = '#/'
-    return <Home />
-  }
-  
-  if (isLoginPage) {
-    return <LoginPage />
-  }
-  
   return <Home />
 }
 
@@ -76,5 +51,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </ErrorBoundary>
   </ArcoProvider>
 )
-
-

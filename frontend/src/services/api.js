@@ -1,9 +1,103 @@
 import { cache, cacheKeys } from './cache.js'
 
+// 检查是否使用模拟数据
+const USE_MOCK_DATA = true; // 设置为true以使用模拟数据
+
+// 模拟用户数据
+const MOCK_USERS = [
+  {
+    id: '1',
+    email: 'admin@example.com',
+    name: 'admin',
+    password: '123456', // 在实际应用中，这应该是加密的密码
+    createdAt: new Date().toISOString()
+  }
+];
+
+// 模拟认证令牌
+const MOCK_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxIiwiZW1haWwiOiJhZG1pbkBleGFtcGxlLmNvbSIsImlhdCI6MTYzMzUxNjg1OH0.3RuT1nG2Jrb4aV1N5k7-rHffZdKgZr6uUcVl6k1Vr4I';
+
 const API_BASE_URL = 'http://localhost:3001/api/v1'
 
 // 通用请求函数
 async function request(url, options = {}) {
+  // 如果使用模拟数据，处理认证相关请求
+  if (USE_MOCK_DATA) {
+    // 模拟登录请求
+    if (url === '/auth/login' && options.method === 'POST') {
+      const body = JSON.parse(options.body);
+      const user = MOCK_USERS.find(u => u.email === body.email);
+      
+      if (user && user.password === body.password) {
+        return {
+          code: 200,
+          message: '登录成功',
+          data: {
+            token: MOCK_TOKEN,
+            user: {
+              id: user.id,
+              email: user.email,
+              name: user.name
+            }
+          }
+        };
+      } else {
+        throw new Error('邮箱或密码错误');
+      }
+    }
+    
+    // 模拟注册请求
+    if (url === '/auth/register' && options.method === 'POST') {
+      const body = JSON.parse(options.body);
+      const existingUser = MOCK_USERS.find(u => u.email === body.email);
+      
+      if (existingUser) {
+        throw new Error('用户已存在');
+      }
+      
+      const newUser = {
+        id: String(MOCK_USERS.length + 1),
+        email: body.email,
+        name: body.name || body.email.split('@')[0],
+        password: body.password,
+        createdAt: new Date().toISOString()
+      };
+      
+      MOCK_USERS.push(newUser);
+      
+      return {
+        code: 201,
+        message: '注册成功',
+        data: {
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+          createdAt: newUser.createdAt
+        }
+      };
+    }
+    
+    // 模拟获取用户信息请求
+    if (url === '/users/profile' && options.method === 'GET') {
+      const token = options.headers?.Authorization?.replace('Bearer ', '');
+      if (token === MOCK_TOKEN) {
+        const user = MOCK_USERS[0]; // 简化处理，返回第一个用户
+        return {
+          code: 200,
+          message: '获取用户信息成功',
+          data: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            createdAt: user.createdAt
+          }
+        };
+      } else {
+        throw new Error('认证失败');
+      }
+    }
+  }
+
   const config = {
     headers: {
       'Content-Type': 'application/json',

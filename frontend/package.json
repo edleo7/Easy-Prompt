@@ -11,6 +11,7 @@
     "lint:fix": "eslint . --ext js,jsx,ts,tsx --fix"
   },
   "dependencies": {
+    "@alex_xu/react-slider-vertify": "^1.2.0",
     "@arco-design/web-react": "^2.66.5",
     "@reduxjs/toolkit": "^1.9.0",
     "@tanstack/react-query": "^4.24.0",
@@ -21,6 +22,7 @@
     "react-force-graph": "^1.48.1",
     "react-force-graph-2d": "^1.29.0",
     "react-redux": "^8.0.0",
+    "react-rotate-captcha": "^1.0.26",
     "react-router-dom": "^6.8.0"
   },
   "devDependencies": {
