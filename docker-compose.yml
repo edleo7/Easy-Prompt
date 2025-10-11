@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15
+    container_name: easyprompt-postgres
+    environment:
+      POSTGRES_DB: easyprompt
+      POSTGRES_USER: easyprompt
+      POSTGRES_PASSWORD: easyprompt123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - easyprompt-network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: easyprompt-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - easyprompt-network
+
+  # Milvus 向量数据库
+  milvus:
+    image: milvusdb/milvus:v2.3.4
+    platform: linux/arm64
+    container_name: easyprompt-milvus
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+    ports:
+      - "19530:19530"
+    volumes:
+      - milvus_data:/var/lib/milvus
+    depends_on:
+      - etcd
+      - minio
+    networks:
+      - easyprompt-network
+
+  # etcd (Milvus 依赖)
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.9
+    platform: linux/arm64
+    container_name: easyprompt-etcd
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    volumes:
+      - etcd_data:/etcd
+    networks:
+      - easyprompt-network
+
+  # MinIO (Milvus 依赖)
+  minio:
+    image: minio/minio:latest
+    container_name: easyprompt-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    command: minio server /minio_data
+    ports:
+      - "9001:9000"
+    volumes:
+      - minio_data:/minio_data
+    networks:
+      - easyprompt-network
+
+  # 后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: easyprompt-backend
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://easyprompt:easyprompt123@postgres:5432/easyprompt
+      - REDIS_URL=redis://redis:6379
+      - VECTOR_DB_URL=http://milvus:19530
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+      - milvus
+    volumes:
+      - ./backend/uploads:/app/uploads
+    networks:
+      - easyprompt-network
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: easyprompt-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - easyprompt-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  milvus_data:
+  etcd_data:
+  minio_data:
+
+networks:
+  easyprompt-network:
+    driver: bridge
