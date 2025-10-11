@@ -117,7 +117,7 @@ function LoginPage() {
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         zIndex: 9999,
-        padding: '60px 20px',
+        padding: '80px 40px',
         animation: 'fadeIn 0.3s ease-out'
       }}
       onClick={(e) => {
@@ -136,7 +136,7 @@ function LoginPage() {
           border: 'none',
           animation: 'slideIn 0.3s ease-out',
           position: 'relative',
-          maxHeight: 'calc(100vh - 120px)',
+          maxHeight: 'calc(100vh - 160px)',
           overflowY: 'auto'
         }}
         bodyStyle={{ padding: '40px' }}
