@@ -1,10 +1,37 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Form, Input, Button, Card, Typography, Space, Divider, Notification, Link } from '@arco-design/web-react'
-import { IconUser, IconLock, IconGithub, IconWechat } from '@arco-design/web-react/icon'
+import { IconUser, IconLock, IconGithub, IconWechat, IconClose } from '@arco-design/web-react/icon'
 import mainLogo from '../assets/images/品牌/主logo.png'
 import { authAPI } from '../services/api'
 
 const { Title, Text } = Typography
+
+// 添加 CSS 动画
+const styleSheet = document.createElement('style')
+styleSheet.textContent = `
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+`
+if (!document.head.querySelector('style[data-login-animation]')) {
+  styleSheet.setAttribute('data-login-animation', 'true')
+  document.head.appendChild(styleSheet)
+}
 
 function LoginPage() {
   const [form] = Form.useForm()
@@ -15,14 +42,12 @@ function LoginPage() {
     try {
       console.log('登录信息:', values)
       
-      // 调用后端登录 API
       const response = await authAPI.login({
-        email: values.username, // 使用用户名作为邮箱
+        email: values.username,
         password: values.password
       })
       
       if (response.code === 200) {
-        // 保存 token 到 localStorage
         localStorage.setItem('token', response.data.token)
         localStorage.setItem('user', JSON.stringify(response.data.user))
         
@@ -32,9 +57,7 @@ function LoginPage() {
           duration: 3000
         })
         
-        // 跳转到主页
         setTimeout(() => {
-          // 使用 hash 路由避免白屏
           window.location.hash = '#/'
           window.location.reload()
         }, 1000)
@@ -73,34 +96,85 @@ function LoginPage() {
     })
   }
 
+  const handleClose = () => {
+    // 返回主页
+    window.location.hash = '#/'
+    window.location.reload()
+  }
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0, 0, 0, 0.5)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        zIndex: 9999,
+        padding: '60px 20px',
+        animation: 'fadeIn 0.3s ease-out'
+      }}
+      onClick={(e) => {
+        // 点击背景遮罩层时关闭
+        if (e.target === e.currentTarget) {
+          handleClose()
+        }
+      }}
+    >
       <Card
         style={{
           width: '100%',
           maxWidth: 400,
           borderRadius: 16,
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-          border: 'none'
+          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          border: 'none',
+          animation: 'slideIn 0.3s ease-out',
+          position: 'relative',
+          maxHeight: 'calc(100vh - 120px)',
+          overflowY: 'auto'
         }}
         bodyStyle={{ padding: '40px' }}
       >
+        {/* 关闭按钮 */}
+        <Button
+          icon={<IconClose />}
+          shape="circle"
+          size="small"
+          onClick={handleClose}
+          style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            border: 'none',
+            background: 'transparent',
+            color: '#86909c',
+            cursor: 'pointer',
+            zIndex: 1
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#f2f3f5'
+            e.currentTarget.style.color = '#1d2129'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.color = '#86909c'
+          }}
+        />
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <img 
-            src={mainLogo} 
-            alt="EasyPrompt" 
-            style={{ 
-              height: 60, 
-              width: 'auto',
-              marginBottom: 16
-            }} 
+          <img
+            src={mainLogo}
+            alt="EasyPrompt"
+            style={{
+              height: 60,
+              marginBottom: 16,
+              objectFit: 'contain'
+            }}
           />
           <Title heading={3} style={{ margin: 0, color: '#1d2129' }}>
             欢迎使用 EasyPrompt
@@ -112,8 +186,8 @@ function LoginPage() {
 
         <Form
           form={form}
-          layout="vertical"
           onSubmit={handleLogin}
+          layout="vertical"
           autoComplete="off"
         >
           <Form.Item
@@ -147,10 +221,10 @@ function LoginPage() {
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 16 }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center' 
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
             }}>
               <Form.Item field="remember" style={{ margin: 0 }}>
                 <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
@@ -194,7 +268,7 @@ function LoginPage() {
           >
             使用 GitHub 登录
           </Button>
-          
+
           <Button
             size="large"
             style={{ width: '100%', height: 44 }}
@@ -204,8 +278,8 @@ function LoginPage() {
           </Button>
         </Space>
 
-        <div style={{ 
-          textAlign: 'center', 
+        <div style={{
+          textAlign: 'center',
           marginTop: 24,
           paddingTop: 24,
           borderTop: '1px solid #f2f3f5'

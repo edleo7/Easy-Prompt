@@ -53,20 +53,20 @@ function App() {
   // 如果未登录且不在登录页面，跳转到登录页面
   if (!isLoggedIn && !isLoginPage) {
     window.location.hash = '#/login'
-    return <LoginPage />
   }
   
   // 如果已登录且在登录页面，跳转到主页
   if (isLoggedIn && isLoginPage) {
     window.location.hash = '#/'
-    return <Home />
   }
   
-  if (isLoginPage) {
-    return <LoginPage />
-  }
-  
-  return <Home />
+  // 嵌入式布局：始终显示主应用背景，登录时叠加对话框
+  return (
+    <>
+      <Home />
+      {isLoginPage && !isLoggedIn && <LoginPage />}
+    </>
+  )
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
