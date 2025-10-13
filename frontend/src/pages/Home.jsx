@@ -1,11 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, Suspense, lazy } from 'react'
 import { Typography, Grid } from '@arco-design/web-react'
-import PromptGenerate from './PromptGenerate'
-import MemoryManagement from './MemoryManagement'
-import KnowledgeBaseManagement from './KnowledgeBaseManagement'
-import ProjectManagement from './ProjectManagement'
-import VariableManagement from './VariableManagement'
 import AppLayout from '../components/AppLayout'
+import Loading from '../components/Loading'
+
+// 懒加载页面组件
+const PromptGenerate = lazy(() => import('./PromptGenerate'))
+const MemoryManagement = lazy(() => import('./MemoryManagement'))
+const KnowledgeBaseManagement = lazy(() => import('./KnowledgeBaseManagement'))
+const ProjectManagement = lazy(() => import('./ProjectManagement'))
+const VariableManagement = lazy(() => import('./VariableManagement'))
 
 const { Title, Text } = Typography
 const { Row, Col } = Grid
@@ -32,7 +35,11 @@ export default function Home() {
 
   // 如果选择了其他页面，渲染对应组件
   if (CurrentComponent) {
-    return <CurrentComponent currentPage={currentPage} setCurrentPage={setCurrentPage} />
+    return (
+      <Suspense fallback={<Loading />}>
+        <CurrentComponent currentPage={currentPage} setCurrentPage={setCurrentPage} />
+      </Suspense>
+    )
   }
 
   // 如果选择了未实现的页面，显示占位内容

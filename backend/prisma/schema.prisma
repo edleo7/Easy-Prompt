@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = "postgresql://easyprompt:easyprompt123@localhost:5432/easyprompt"
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -16,11 +16,8 @@ model User {
   passwordHash String
   name         String?
   avatarUrl    String?
-  plan         String       @default("FREE") // FREE, BASIC, PRO, ENTERPRISE
   memberships  Membership[]
   workspaces   Workspace[]
-  subscriptions Subscription[]
-  paymentOrders PaymentOrder[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 }
@@ -98,16 +95,15 @@ model Template {
 }
 
 model KnowledgeBase {
-  id           String     @id @default(cuid())
+  id           String   @id @default(cuid())
   name         String
   description  String?
   workspaceId  String
-  workspace    Workspace  @relation(fields: [workspaceId], references: [id])
+  workspace    Workspace @relation(fields: [workspaceId], references: [id])
   files        File[]
-  documents    Document[]
   tasks        Task[]
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model File {
@@ -118,11 +114,7 @@ model File {
   mimeType     String
   size         Int
   storageUrl   String
-  status       String   @default("pending") // pending, processing, completed, failed
-  errorMessage String?
-  processedAt  DateTime?
   chunks       DocChunk[]
-  documents    Document[]
   createdAt    DateTime @default(now())
 }
 
@@ -130,27 +122,10 @@ model DocChunk {
   id         String  @id @default(cuid())
   fileId     String
   file       File    @relation(fields: [fileId], references: [id])
-  documentId String?
-  document   Document? @relation(fields: [documentId], references: [id])
-  chunkIndex Int
-  content    String
-  vector     String? // Base64 encoded embedding
+  idx        Int
+  text       String
+  embedding  String? // Base64 encoded embedding
   metadata   String? // JSON string
-  createdAt  DateTime @default(now())
-}
-
-model Document {
-  id         String     @id @default(cuid())
-  name       String
-  content    String
-  kbId       String
-  kb         KnowledgeBase @relation(fields: [kbId], references: [id])
-  fileId     String?
-  file       File?      @relation(fields: [fileId], references: [id])
-  status     String     @default("processed") // processed, failed
-  chunks     DocChunk[]
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
 }
 
 model ChatSession {
@@ -217,19 +192,13 @@ model EvalRun {
 }
 
 model Subscription {
-  id            String    @id @default(cuid())
-  userId        String
-  user          User      @relation(fields: [userId], references: [id])
-  workspaceId   String?
-  workspace     Workspace? @relation(fields: [workspaceId], references: [id])
-  planId        String
-  status        String    // active, cancelled, expired, trial
-  startDate     DateTime
-  endDate       DateTime
-  autoRenew     Boolean   @default(true)
-  paymentMethod String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String  @id @default(cuid())
+  workspaceId  String
+  planId       String
+  status       String
+  expireAt     DateTime
+  workspace    Workspace @relation(fields: [workspaceId], references: [id])
+  createdAt    DateTime @default(now())
 }
 
 model CreditLedger {
@@ -239,63 +208,4 @@ model CreditLedger {
   reason       String
   workspace    Workspace @relation(fields: [workspaceId], references: [id])
   createdAt    DateTime @default(now())
-}
-
-model PaymentOrder {
-  id             String    @id @default(cuid())
-  userId         String
-  user           User      @relation(fields: [userId], references: [id])
-  planId         String
-  amount         Int       // 以分为单位
-  currency       String    @default("usd")
-  status         String    // pending, completed, failed, cancelled
-  gateway        String    // stripe, paypal, alipay, wechat
-  gatewayOrderId String?
-  paymentUrl     String?
-  description    String?
-  metadata       String?   // JSON string
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-}
-
-model ErrorLog {
-  id        String   @id @default(cuid())
-  level     String   // DEBUG, INFO, WARN, ERROR
-  message   String
-  metadata  String?  // JSON string
-  timestamp DateTime @default(now())
-}
-
-model SystemMetrics {
-  id                String   @id @default(cuid())
-  requests          Int      @default(0)
-  errors            Int      @default(0)
-  avgProcessingTime Int?     // 毫秒
-  memoryUsage       String?  // JSON string
-  cpuUsage          String?  // JSON string
-  timestamp         DateTime @default(now())
-}
-
-model ApiLog {
-  id             String   @id @default(cuid())
-  userId         String?
-  method         String
-  endpoint       String
-  statusCode     Int
-  processingTime Int      // 毫秒
-  userAgent      String?
-  ip             String?
-  createdAt      DateTime @default(now())
-}
-
-model BatchTask {
-  id             String    @id @default(cuid())
-  type           String    // file_processing, vector_creation, batch_search
-  status         String    // pending, processing, completed, failed, partial
-  totalItems     Int
-  processedItems Int       @default(0)
-  failedItems    Int       @default(0)
-  metadata       String?   // JSON string
-  createdAt      DateTime  @default(now())
-  completedAt    DateTime?
 }

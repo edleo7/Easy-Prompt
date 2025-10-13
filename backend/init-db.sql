@@ -1,0 +1,10 @@
+-- 确保easyprompt用户拥有所有必要权限
+ALTER USER easyprompt WITH SUPERUSER;
+GRANT ALL PRIVILEGES ON DATABASE easyprompt TO easyprompt;
+GRANT ALL ON SCHEMA public TO easyprompt;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO easyprompt;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO easyprompt;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO easyprompt;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO easyprompt;
+ALTER SCHEMA public OWNER TO easyprompt;
+
