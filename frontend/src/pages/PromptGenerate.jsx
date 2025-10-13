@@ -60,6 +60,17 @@ export default function PromptGenerate({ currentPage, setCurrentPage }) {
         </Text>
       </div>
 
+      {/* 新增顶部问候语和输入框区域 */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '600px', margin: '0 auto' }}>
+        <div style={{ marginBottom: 16 }}>你好，XXX</div>
+        <Input placeholder="请输入" style={{ width: '100%', marginBottom: '8px' }} />
+        <Button icon={<IconArrowUp />} style={{ float: 'right', marginTop: '-32px', marginRight: '-8px' }}></Button>
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', width: '100%' }}>
+          <Button type="default">知识库</Button>
+          <Button type="default">变量库</Button>
+        </div>
+      </div>
+
       {/* 任务输入卡片 */}
       <div style={{ 
         background: '#fff',

@@ -1,11 +1,6 @@
 import React from 'react'
-import { Menu } from '@arco-design/web-react'
-import {
-  IconLink,
-  IconCloud,
-  IconUser,
-  IconShareAlt
-} from '@arco-design/web-react/icon'
+import { Menu, Icon } from '@arco-design/web-react'
+import { IconLink, IconShareAlt } from '@arco-design/web-react/icon' // 确保 IconLink 正确导入
 
 export default function BottomMenu({ currentPage, onPageChange, collapsed }) {
   if (collapsed) return null
@@ -15,11 +10,14 @@ export default function BottomMenu({ currentPage, onPageChange, collapsed }) {
       position: 'absolute', 
       bottom: 80, 
       left: 16, 
-      right: 16
+      right: 16,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
     }}>
       <Menu
         mode="vertical"
-        selectedKeys={currentPage === 'api-docs' || currentPage === 'open-platform' || currentPage === 'account-center' || currentPage === 'my-subscription' ? [currentPage] : []}
+        selectedKeys={[currentPage]}
         style={{ 
           border: 'none', 
           background: 'transparent',
@@ -27,62 +25,34 @@ export default function BottomMenu({ currentPage, onPageChange, collapsed }) {
         }}
       >
         <Menu.Item 
-          key="api-docs" 
+          key="api-key" 
           style={{ 
             margin: '2px 4px', 
             borderRadius: 4,
             height: '36px',
             lineHeight: '36px'
           }}
-          onClick={() => onPageChange('api-docs')}
+          onClick={() => onPageChange('api-key')}
         >
           <IconLink style={{ marginRight: 8 }} />
-          API文档
+          API-Key
         </Menu.Item>
         
         <Menu.Item 
-          key="open-platform" 
+          key="subscription-management" 
           style={{ 
             margin: '2px 4px', 
             borderRadius: 4,
             height: '36px',
             lineHeight: '36px'
           }}
-          onClick={() => onPageChange('open-platform')}
-        >
-          <IconCloud style={{ marginRight: 8 }} />
-          开放平台
-        </Menu.Item>
-        
-        <Menu.Item 
-          key="account-center" 
-          style={{ 
-            margin: '2px 4px', 
-            borderRadius: 4,
-            height: '36px',
-            lineHeight: '36px'
-          }}
-          onClick={() => onPageChange('account-center')}
-        >
-          <IconUser style={{ marginRight: 8 }} />
-          账户中心
-        </Menu.Item>
-        
-        <Menu.Item 
-          key="my-subscription" 
-          style={{ 
-            margin: '2px 4px', 
-            borderRadius: 4,
-            height: '36px',
-            lineHeight: '36px'
-          }}
-          onClick={() => onPageChange('my-subscription')}
+          onClick={() => onPageChange('subscription-management')}
         >
           <IconShareAlt style={{ marginRight: 8 }} />
-          我的订阅
+          订阅与管理
         </Menu.Item>
       </Menu>
+      
     </div>
   )
 }
-

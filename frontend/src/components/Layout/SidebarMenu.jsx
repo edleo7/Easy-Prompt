@@ -6,101 +6,115 @@ import {
   IconSettings,
   IconFile,
   IconMessage,
-  IconBook
+  IconBook,
+  IconUserGroup
 } from '@arco-design/web-react/icon'
 
 export default function SidebarMenu({ currentPage, onPageChange }) {
   return (
     <Menu 
-      selectedKeys={[currentPage]} 
+      // selectedKeys={['prompt-generate']} // 默认选中 Prompt生成
       style={{ 
         border: 'none', 
         background: 'transparent',
-        padding: '8px 0'
+        padding: '0'
       }}
     >
       <Menu.Item 
-        key="project-management" 
-        style={{ margin: '4px 8px', borderRadius: 6 }}
-        onClick={() => onPageChange('project-management')}
+        key="prompt-generate" 
+        style={{  borderRadius: 6,overflow: 'hidden' }}
+        onClick={() => onPageChange('prompt-generate')}
       >
-        <IconFolder style={{ marginRight: 8 }} />
-        项目管理
+        <IconThunderbolt style={{ marginRight: 8 }} />
+        Prompt 生成
       </Menu.Item>
-      
+
       <Menu.SubMenu 
-        key="prompt-management" 
-        title={
+        key="project-management" 
+        title={(
           <span>
-            <IconThunderbolt style={{ marginRight: 8 }} />
-            Prompt管理
+            <IconFolder style={{ marginRight: 8 }} />
+            项目管理
           </span>
-        }
-        style={{ margin: '4px 8px', borderRadius: 6 }}
+        )}
+        style={{  borderRadius: 6 }}
       >
         <Menu.Item 
-          key="prompt-generate" 
+          key="new-project" 
           style={{ margin: '2px 4px', borderRadius: 4 }}
-          onClick={() => onPageChange('prompt-generate')}
+          onClick={() => onPageChange('new-project')}
         >
-          <IconThunderbolt style={{ marginRight: 8 }} />
-          Prompt 生成
+          新建项目
         </Menu.Item>
         <Menu.Item 
-          key="variable-management" 
+          key="project-a" 
           style={{ margin: '2px 4px', borderRadius: 4 }}
-          onClick={() => onPageChange('variable-management')}
+          onClick={() => onPageChange('project-a')}
+        >
+          项目A
+        </Menu.Item>
+        <Menu.Item 
+          key="project-b" 
+          style={{ margin: '2px 4px', borderRadius: 4 }}
+          onClick={() => onPageChange('project-b')}
+        >
+          项目B
+        </Menu.Item>
+      </Menu.SubMenu>
+
+      <Menu.SubMenu 
+        key="information-management" 
+        title={(
+          <span>
+            <IconBook style={{ marginRight: 8 }} />
+            信息管理
+          </span>
+        )}
+        style={{  borderRadius: 6 }}
+      >
+        <Menu.Item 
+          key="knowledge-base" 
+          style={{ margin: '2px 4px', borderRadius: 4 }}
+          onClick={() => onPageChange('knowledge-base')}
+        >
+          <IconFile style={{ marginRight: 8 }} />
+          知识库
+        </Menu.Item>
+        <Menu.Item 
+          key="memory-management" 
+          style={{ margin: '2px 4px', borderRadius: 4 }}
+          onClick={() => onPageChange('memory-management')}
+        >
+          <IconBook style={{ marginRight: 8 }} />
+          记忆库
+        </Menu.Item>
+        <Menu.Item 
+          key="variable-library" 
+          style={{ margin: '2px 4px', borderRadius: 4 }}
+          onClick={() => onPageChange('variable-library')}
         >
           <IconSettings style={{ marginRight: 8 }} />
-          变量管理
+          变量库
         </Menu.Item>
-        <Menu.SubMenu 
-          key="prompt-debug" 
-          title={
-            <span>
-              <IconSettings style={{ marginRight: 8 }} />
-              Prompt 调试
-            </span>
-          }
-          style={{ margin: '2px 4px', borderRadius: 4 }}
-        >
-          <Menu.Item 
-            key="text-understanding" 
-            style={{ margin: '2px 8px', borderRadius: 4 }}
-            onClick={() => onPageChange('text-understanding')}
-          >
-            <IconFile style={{ marginRight: 8 }} />
-            文本理解
-          </Menu.Item>
-          <Menu.Item 
-            key="multi-turn-dialogue" 
-            style={{ margin: '2px 8px', borderRadius: 4 }}
-            onClick={() => onPageChange('multi-turn-dialogue')}
-          >
-            <IconMessage style={{ marginRight: 8 }} />
-            多轮对话
-          </Menu.Item>
-        </Menu.SubMenu>
       </Menu.SubMenu>
-        
+
       <Menu.Item 
-        key="memory-management" 
-        style={{ margin: '4px 8px', borderRadius: 6 }}
-        onClick={() => onPageChange('memory-management')}
+        key="collaboration-space" 
+        style={{  borderRadius: 6 }}
+        onClick={() => onPageChange('collaboration-space')}
       >
-        <IconBook style={{ marginRight: 8 }} />
-        记忆管理
+        <IconUserGroup style={{ marginRight: 8 }} />
+        协作空间
       </Menu.Item>
-        
+
       <Menu.Item 
-        key="knowledge-base" 
-        style={{ margin: '4px 8px', borderRadius: 6 }}
-        onClick={() => onPageChange('knowledge-base')}
+        key="conversation-management" 
+        style={{  borderRadius: 6 }}
+        onClick={() => onPageChange('conversation-management')}
       >
-        <IconFile style={{ marginRight: 8 }} />
-        知识库管理
+        <IconMessage style={{ marginRight: 8 }} />
+        会话管理
       </Menu.Item>
     </Menu>
   )
 }
-

@@ -58,7 +58,7 @@ export default function Sidebar({
           style={{
             color: '#86909c',
             fontSize: 16,
-            padding: '4px',
+            // padding: '4px',
             minWidth: 'auto'
           }}
         />

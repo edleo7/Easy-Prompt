@@ -10,6 +10,8 @@ import {
   IconPoweroff
 } from '@arco-design/web-react/icon';
 import pureLogo from '../assets/images/品牌/纯logo.png';
+import Settings from './Layout/Settings.jsx';
+import UsageDetails from './Layout/UsageDetails.jsx';
 
 // 全局样式注入
 const injectGlobalStyles = () => {
@@ -225,29 +227,16 @@ export default function UserMenu({ visible, onClose, userInfo, onLogout }) {
         
       case 'settings':
         return (
-          <div>
-            <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 24, color: colors.contentText }}>
-              设置
-            </h2>
-            <div style={{ padding: 40, textAlign: 'center', color: '#86909c' }}>
-              <IconSettings style={{ fontSize: 48, marginBottom: 16 }} />
-              <div>设置功能开发中...</div>
-            </div>
-          </div>
+          <Settings 
+            theme={theme}
+            onThemeChange={setTheme}
+            language="zh-CN"
+            onLanguageChange={(lang) => console.log('Language changed to:', lang)}
+          />
         );
         
       case 'usage-details':
-        return (
-          <div>
-            <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 24, color: colors.contentText }}>
-              使用明细
-            </h2>
-            <div style={{ padding: 40, textAlign: 'center', color: '#86909c' }}>
-              <IconHistory style={{ fontSize: 48, marginBottom: 16 }} />
-              <div>使用明细功能开发中...</div>
-            </div>
-          </div>
-        );
+        return <UsageDetails />;
         
       case 'subscription':
         return (
@@ -291,7 +280,7 @@ export default function UserMenu({ visible, onClose, userInfo, onLogout }) {
       <div style={{ 
         display: 'flex', 
         width: '100%', 
-        height: '100%',
+        height: '60vh',
         overflow: 'hidden',
         boxSizing: 'border-box',
         borderRadius: 12,
@@ -337,7 +326,7 @@ export default function UserMenu({ visible, onClose, userInfo, onLogout }) {
       
           {/* 菜单项 */}
           <div style={{ 
-            flex: 0, 
+            flex: 1, 
             overflowY: 'auto',
             overflowX: 'hidden'
           }}>
@@ -374,7 +363,7 @@ export default function UserMenu({ visible, onClose, userInfo, onLogout }) {
     </div>
           
           {/* 弹性空间 - 将底部菜单推到底部 */}
-          <div style={{ flex: 1 }}></div>
+          {/* <div style={{ flex: 1 }}></div> */}
           
           {/* 底部菜单 */}
           <div style={{ 

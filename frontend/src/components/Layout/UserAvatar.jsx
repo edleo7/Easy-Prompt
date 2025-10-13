@@ -37,8 +37,8 @@ export default function UserAvatar({
       }}
     >
       <Avatar 
-        size={collapsed ? 32 : 36} 
-        style={{ padding: 4 }}
+        // size={collapsed ? 32 : 36} 
+        // style={{ padding: 4 }}
       >
         <img 
           src={pureLogo} 
