@@ -1,244 +1,264 @@
-import React, { useState } from 'react'
-import { Button, Input, Select, Typography, Card, Grid, Space, Tag, Avatar, Modal, Form, Message } from '@arco-design/web-react'
-import { IconPlus, IconSearch, IconSend, IconEye, IconMessage as IconChat, IconThunderbolt, IconSettings, IconFile } from '@arco-design/web-react/icon'
-import pureLogo from '../assets/images/品牌/纯logo.png'
-import AppLayout from '../components/AppLayout'
+import React, { useState } from 'react';
+import { Typography, Input, Button, Space, Select } from '@arco-design/web-react';
+import { IconPlus, IconMinus, IconUpload, IconQuestionCircle, IconDown } from '@arco-design/web-react/icon';
+import AppLayout from '../components/AppLayout';
 
-const { Title, Text } = Typography
-const { Row, Col } = Grid
+const { Title, Text } = Typography;
+const Option = Select.Option;
 
 export default function PromptGenerate({ currentPage, setCurrentPage }) {
-  const [taskDescription, setTaskDescription] = useState('')
-  const [taskType, setTaskType] = useState('文本理解')
-
-  const promptExamples = [
-    {
-      id: 1,
-      type: '文本理解',
-      title: '教育题目答案批改输出',
-      description: '你身为中国顶尖的 {subject} 教师，学生会将完成的题目…',
-      icon: '📝',
-      color: 'green'
-    },
-    {
-      id: 2,
-      type: '视觉理解',
-      title: '图像内容分析',
-      description: '请分析这张图片中的主要内容，包括物体、场景、颜色等…',
-      icon: '👁️',
-      color: 'blue'
-    },
-    {
-      id: 3,
-      type: '多轮对话',
-      title: '客服对话生成',
-      description: '生成客服对话机器人的对话内容，要求自然流畅，符合日…',
-      icon: '💬',
-      color: 'purple'
-    }
-  ]
-
-  const handleGenerate = () => {
-    Message.success('Prompt 生成中...')
-    // 这里可以添加实际的生成逻辑
-  }
+  // 控制页面内容是否上移的状态
+  const [contentMoved, setContentMoved] = useState(false);
+  // 处理帮助文档点击
+  const handleHelpClick = () => {
+    // 这里可以打开帮助文档页面或模态框
+    console.log('打开帮助文档');
+    // 示例：window.open('/help', '_blank');
+  };
+  
+  // 处理向下按钮点击
+  const handleMoveDown = () => {
+    setContentMoved(true);
+  };
+  
+  // 处理上传按钮点击，切换到Prompt详情页面
+  const handleUploadClick = () => {
+    setCurrentPage('prompt-detail');
+  };
 
   return (
-    <AppLayout 
-      currentPage={currentPage} 
+    <AppLayout
+      currentPage={currentPage}
       setCurrentPage={setCurrentPage}
       pageTitle="Prompt 生成"
       pageSubtitle="智能生成 Prompt"
     >
-      {/* 主标题区域 */}
-      <div style={{ textAlign: 'center', marginBottom: 40 }}>
-        <Title heading={2} style={{ margin: 0, marginBottom: 12, color: '#1d2129' }}>
-          从生成一个 Prompt. 开始
-        </Title>
-        <Text type="secondary" style={{ fontSize: 16 }}>
-          激发模型潜能，轻松优化Prompt。使用手册
-        </Text>
-      </div>
-
-      {/* 新增顶部问候语和输入框区域 */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '600px', margin: '0 auto' }}>
-        <div style={{ marginBottom: 16 }}>你好，XXX</div>
-        <Input placeholder="请输入" style={{ width: '100%', marginBottom: '8px' }} />
-        <Button icon={<IconArrowUp />} style={{ float: 'right', marginTop: '-32px', marginRight: '-8px' }}></Button>
-        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', width: '100%' }}>
-          <Button type="default">知识库</Button>
-          <Button type="default">变量库</Button>
-        </div>
-      </div>
-
-      {/* 任务输入卡片 */}
-      <div style={{ 
-        background: '#fff',
-        borderRadius: 12,
-        padding: '32px',
-        marginBottom: 32,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        border: '1px solid #e5e6eb'
-      }}>
-        <div style={{ marginBottom: 24 }}>
-          <Title heading={5} style={{ margin: 0, marginBottom: 8 }}>描述您的任务</Title>
-          <Text type="secondary">请详细描述您希望AI完成的任务，我们将为您生成专业的Prompt</Text>
-        </div>
-        
-        <Form layout="vertical">
-          <Form.Item label="任务类型" required>
-            <Select 
-              value={taskType} 
-              onChange={setTaskType}
-              style={{ width: 200 }}
-            >
-              <Select.Option value="文本理解">文本理解</Select.Option>
-              <Select.Option value="视觉理解">视觉理解</Select.Option>
-              <Select.Option value="多轮对话">多轮对话</Select.Option>
-            </Select>
-          </Form.Item>
-          
-          <Form.Item label="任务描述" required>
-            <Input.TextArea
-              value={taskDescription}
-              onChange={setTaskDescription}
-              placeholder="请详细描述您的任务，例如：我需要一个能够分析学生作文并给出改进建议的Prompt..."
-              autoSize={{ minRows: 4, maxRows: 8 }}
-              style={{ fontSize: 14 }}
-            />
-          </Form.Item>
-          
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-            <Button size="large">清空</Button>
-            <Button 
-              type="primary" 
-              size="large" 
-              icon={<IconSend />}
-              onClick={handleGenerate}
-              style={{ 
-                background: 'linear-gradient(135deg,#6aa1ff,#165dff)',
-                border: 'none'
-              }}
-            >
-              生成 Prompt
-            </Button>
-          </div>
-        </Form>
-      </div>
-
-      {/* 示例卡片 */}
-      <div style={{ marginBottom: 32 }}>
-        <div style={{ marginBottom: 20 }}>
-          <Title heading={5} style={{ margin: 0, marginBottom: 8 }}>参考示例</Title>
-          <Text type="secondary">查看这些示例，了解如何描述您的任务</Text>
-        </div>
-        
-        <Row gutter={[20, 20]}>
-          {promptExamples.map((example) => (
-            <Col span={8} key={example.id}>
-              <Card 
-                hoverable 
-                style={{ 
-                  borderRadius: 12,
-                  border: '1px solid #e5e6eb',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                  transition: 'all 0.3s ease',
-                  cursor: 'pointer'
-                }}
-                bodyStyle={{ padding: '20px' }}
-                onClick={() => {
-                  setTaskType(example.type)
-                  setTaskDescription(example.description)
-                }}
-              >
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  marginBottom: 12
-                }}>
-                  <div style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 8,
-                    background: `linear-gradient(135deg, ${
-                      example.color === 'green' ? '#00b42a' :
-                      example.color === 'blue' ? '#165dff' : '#722ed1'
-                    }, ${
-                      example.color === 'green' ? '#23c343' :
-                      example.color === 'blue' ? '#4080ff' : '#9254de'
-                    })`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: 18,
-                    marginRight: 12
-                  }}>
-                    {example.icon}
-                  </div>
-                  <div>
-                    <Title heading={6} style={{ margin: 0, fontSize: 14 }}>{example.title}</Title>
-                    <Tag 
-                      color={example.color} 
-                      size="small"
-                      style={{ fontSize: 10, marginTop: 4 }}
-                    >
-                      {example.type}
-                    </Tag>
-                  </div>
-                </div>
-                
-                <Text 
-                  type="secondary" 
-                  style={{ 
-                    fontSize: 13, 
-                    lineHeight: 1.5,
-                    display: 'block'
-                  }}
-                >
-                  {example.description}
-                </Text>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </div>
-
-      {/* 使用提示 */}
-      <div style={{ 
-        background: 'linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%)',
-        borderRadius: 12,
-        padding: '24px',
-        border: '1px solid #e5e6eb'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-          <div style={{
-            width: 32,
-            height: 32,
-            borderRadius: 6,
-            background: 'linear-gradient(135deg,#6aa1ff,#165dff)',
+      {/* 帮助文档按钮 */}
+      <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 100 }}>
+        <Button
+          type="text"
+          icon={<IconQuestionCircle style={{ fontSize: '20px', color: '#888' }} />}
+          onClick={handleHelpClick}
+          style={{ 
+            padding: '4px 12px', 
+            borderRadius: '20px',
+            minWidth: 'auto',
+            color: '#888',
+            backgroundColor: 'rgba(255, 255, 255, 0.7)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontSize: 16,
-            flexShrink: 0
-          }}>
-            💡
+            gap: '4px'
+          }}
+        >
+          帮助文档
+        </Button>
+      </div>
+
+      {/* 左侧导航栏 */}
+      {/* 假设这里已经存在左侧导航栏组件 */}
+
+      {/* 主体内容区域 */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        // padding: '20px',
+        paddingTop: '50px',
+        transform: contentMoved ? 'translateY(0vh)' : 'translateY(0)',
+        transition: 'transform 0.3s ease'
+      }}>
+        {/* 标题区域 */}
+        <div style={{
+          textAlign: 'left', marginBottom: '10px', width: '100%',
+          maxWidth: '700px',
+        }}>
+          <Title heading={2} style={{ fontSize: '36px', fontWeight: '700', margin: '0 0 16px 0' }}>
+            你好，
+          </Title>
+        </div>
+
+        {/* 输入卡片 */}
+        <div style={{
+          width: '100%',
+          maxWidth: '700px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px'
+        }}>
+          {/* 输入框 */}
+          <div style={{ position: 'relative' }}>
+            <Input.TextArea
+              placeholder="请输入..."
+              style={{
+                width: '100%',
+                minHeight: '120px',
+                padding: '16px 20px',
+                fontSize: '16px',
+                borderRadius: '12px',
+                border: '1px solid #e5e6eb',
+                backgroundColor: '#ffffff'
+              }}
+              autoSize={{ minRows: 3, maxRows: 6 }}
+            />
+            {/* 添加按钮到输入框内左右两侧 */}
+            <div style={{ position: 'absolute', bottom: '16px', left: '20px', display: 'flex', gap: '8px' }}>
+              <Button type="secondary" shape="circle" icon={<IconPlus />} />
+            </div>
+            <div style={{ position: 'absolute', bottom: '16px', right: '20px', display: 'flex', gap: '8px' }}>
+              <Button type="secondary" shape="circle" icon={<IconUpload />} onClick={handleUploadClick} />
+            </div>
           </div>
-          <div>
-            <Title heading={6} style={{ margin: 0, marginBottom: 8, color: '#1d2129' }}>
-              使用提示
-            </Title>
-            <Text type="secondary" style={{ fontSize: 13, lineHeight: 1.6 }}>
-              1. 详细描述任务的具体要求和期望输出<br/>
-              2. 说明任务的背景和上下文信息<br/>
-              3. 指定输出格式和风格要求<br/>
-              4. 提供相关的示例或参考
-            </Text>
+
+          {/* 输入框下方的按钮和选择器 */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            padding: '0'
+          }}>
+            <Space size="medium">
+              <Button type="primary" style={{ borderRadius: '8px' }}>知识库</Button>
+              <Button type="primary" style={{ borderRadius: '8px' }}>变量库</Button>
+            </Space>
+            <Select placeholder="请选择" style={{ width: 160 }} allowClear>
+              <Option value="option1">选项1</Option>
+              <Option value="option2">选项2</Option>
+              <Option value="option3">选项3</Option>
+            </Select>
           </div>
         </div>
       </div>
+      
+      {/* 图片展示区域 - 仅在内容移动后显示 */}
+      {contentMoved && (
+        <div style={{ 
+          marginTop: '100px',
+          width: '100%',
+          maxWidth: '700px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '20px',
+          margin: '100px auto 0'
+        }}>
+          {/* 第一行图片 */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            gap: '20px',
+            width: '100%'
+          }}>
+            <div style={{ 
+              width: 'calc((100% - 40px) / 3)', 
+              aspectRatio: '1/1',
+              backgroundColor: '#f0f0f0',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '60px'
+            }}>
+              🖼️
+            </div>
+            <div style={{ 
+              width: 'calc((100% - 40px) / 3)', 
+              aspectRatio: '1/1',
+              backgroundColor: '#f0f0f0',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '60px'
+            }}>
+              🖼️
+            </div>
+            <div style={{ 
+              width: 'calc((100% - 40px) / 3)', 
+              aspectRatio: '1/1',
+              backgroundColor: '#f0f0f0',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '60px'
+            }}>
+              🖼️
+            </div>
+          </div>
+          
+          {/* 第二行图片 */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            gap: '20px',
+            width: '100%'
+          }}>
+            <div style={{ 
+              width: 'calc((100% - 40px) / 3)', 
+              aspectRatio: '1/1',
+              backgroundColor: '#f0f0f0',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '60px'
+            }}>
+              🖼️
+            </div>
+            <div style={{ 
+              width: 'calc((100% - 40px) / 3)', 
+              aspectRatio: '1/1',
+              backgroundColor: '#f0f0f0',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '60px'
+            }}>
+              🖼️
+            </div>
+            <div style={{ 
+              width: 'calc((100% - 40px) / 3)', 
+              aspectRatio: '1/1',
+              backgroundColor: '#f0f0f0',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '60px'
+            }}>
+              🖼️
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* 向下按钮 - 仅在内容未移动时显示 */}
+      {!contentMoved && (
+        <div style={{ 
+          position: 'absolute', 
+          bottom: '20px', 
+          left: '50%', 
+          transform: 'translateX(-50%)',
+          zIndex: 100 
+        }}>
+          <Button
+            type="text"
+            icon={<IconDown style={{ fontSize: '24px', color: '#888' }} />}
+            onClick={handleMoveDown}
+            style={{ 
+              padding: '8px',
+              borderRadius: '50%',
+              minWidth: 'auto',
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+              width: '44px',
+              height: '44px'
+            }}
+          />
+        </div>
+      )}
     </AppLayout>
-  )
+  );
 }

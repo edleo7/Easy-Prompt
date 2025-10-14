@@ -112,7 +112,6 @@ export default function AppLayout({
   }
 
 
-
   return (
     <Layout style={{ height: '100vh', background: '#f7f8fa', overflow: 'hidden', display: 'flex', flexDirection: 'row' }}>
       <Sidebar
@@ -131,7 +130,8 @@ export default function AppLayout({
         flex: 1, 
         overflow: 'auto',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        position: 'relative'
       }}>
         {children}
       </Content>

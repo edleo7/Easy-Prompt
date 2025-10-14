@@ -5,6 +5,7 @@ import Loading from '../components/Loading'
 
 // 懒加载页面组件
 const PromptGenerate = lazy(() => import('./PromptGenerate'))
+const PromptDetail = lazy(() => import('./PromptDetail'))
 const MemoryManagement = lazy(() => import('./MemoryManagement'))
 const KnowledgeBaseManagement = lazy(() => import('./KnowledgeBaseManagement'))
 const ProjectManagement = lazy(() => import('./ProjectManagement'))
@@ -20,6 +21,7 @@ export default function Home() {
   const pageComponents = {
     'project-management': ProjectManagement,
     'prompt-generate': PromptGenerate,
+    'prompt-detail': PromptDetail,
     'variable-management': VariableManagement,
     'memory-management': MemoryManagement,
     'knowledge-base': KnowledgeBaseManagement,
@@ -87,5 +89,3 @@ export default function Home() {
   // 这个return永远不会执行，因为所有页面都有对应的组件
   return null
 }
-
-
