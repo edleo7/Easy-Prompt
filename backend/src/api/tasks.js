@@ -7,18 +7,31 @@ const prisma = new PrismaClient()
 // 获取项目列表
 router.get('/', async (req, res) => {
   try {
-    const { page = 1, limit = 10, type, workspaceId } = req.query
+    const { page = 1, limit = 10, type, workspaceId, status, search, tags } = req.query
 
     const where = { 
       workspaceId: workspaceId || undefined
     }
     if (type) where.type = type
+    if (status) where.status = status
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { description: { contains: search } }
+      ]
+    }
+    if (tags) {
+      const tagArray = tags.split(',')
+      where.tags = {
+        contains: JSON.stringify(tagArray)
+      }
+    }
 
     const tasks = await prisma.task.findMany({
       where,
       skip: (page - 1) * limit,
       take: parseInt(limit),
-      orderBy: { createdAt: 'desc' },
+      orderBy: { updatedAt: 'desc' },
       include: {
         workspace: {
           select: { id: true, name: true }
@@ -28,6 +41,9 @@ router.get('/', async (req, res) => {
         },
         kb: {
           select: { id: true, name: true }
+        },
+        _count: {
+          select: { prompts: true }
         }
       }
     })
@@ -60,7 +76,18 @@ router.get('/', async (req, res) => {
 // 创建项目
 router.post('/', async (req, res) => {
   try {
-    const { name, type, workspaceId, templateId, kbId, variables } = req.body
+    const { 
+      name, 
+      type, 
+      workspaceId, 
+      templateId, 
+      kbId, 
+      variables,
+      description,
+      status = 'draft',
+      tags,
+      coverImage
+    } = req.body
 
     if (!name || !type) {
       return res.status(400).json({
@@ -78,7 +105,12 @@ router.post('/', async (req, res) => {
         templateId: templateId || null,
         kbId: kbId || null,
         variables: variables ? JSON.stringify(variables) : null,
-        createdById: 'default-user' // 使用默认用户ID
+        createdById: 'default-user', // 使用默认用户ID
+        description,
+        status,
+        tags: tags ? JSON.stringify(tags) : null,
+        coverImage,
+        lastAccessedAt: new Date()
       },
       include: {
         workspace: {
@@ -89,6 +121,9 @@ router.post('/', async (req, res) => {
         },
         kb: {
           select: { id: true, name: true }
+        },
+        _count: {
+          select: { prompts: true }
         }
       }
     })
@@ -108,23 +143,28 @@ router.post('/', async (req, res) => {
   }
 })
 
-// 获取任务详情
+// 获取项目详情
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params
-    const userId = req.user.userId
 
-    const task = await prisma.task.findFirst({
-      where: {
-        id,
-        userId
-      },
+    const task = await prisma.task.findUnique({
+      where: { id },
       include: {
+        workspace: {
+          select: { id: true, name: true }
+        },
+        template: {
+          select: { id: true, name: true }
+        },
+        kb: {
+          select: { id: true, name: true }
+        },
         prompts: {
           orderBy: { createdAt: 'desc' }
         },
-        memories: {
-          orderBy: { createdAt: 'desc' }
+        _count: {
+          select: { prompts: true }
         }
       }
     })
@@ -132,18 +172,24 @@ router.get('/:id', async (req, res) => {
     if (!task) {
       return res.status(404).json({
         code: 404,
-        message: '任务不存在',
+        message: '项目不存在',
         data: null
       })
     }
 
+    // 更新最后访问时间
+    await prisma.task.update({
+      where: { id },
+      data: { lastAccessedAt: new Date() }
+    })
+
     res.json({
       code: 200,
-      message: '获取任务详情成功',
+      message: '获取项目详情成功',
       data: task
     })
   } catch (error) {
-    console.error('获取任务详情错误:', error)
+    console.error('获取项目详情错误:', error)
     res.status(500).json({
       code: 500,
       message: '服务器内部错误',
@@ -152,21 +198,31 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-// 更新任务
+// 更新项目
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params
-    const { name, description, status } = req.body
-    const userId = req.user.userId
+    const { 
+      name, 
+      description, 
+      status, 
+      tags, 
+      coverImage,
+      type,
+      workspaceId,
+      templateId,
+      kbId,
+      variables
+    } = req.body
 
-    const task = await prisma.task.findFirst({
-      where: { id, userId }
+    const task = await prisma.task.findUnique({
+      where: { id }
     })
 
     if (!task) {
       return res.status(404).json({
         code: 404,
-        message: '任务不存在',
+        message: '项目不存在',
         data: null
       })
     }
@@ -176,17 +232,39 @@ router.put('/:id', async (req, res) => {
       data: {
         name,
         description,
-        status
+        status,
+        tags: tags ? JSON.stringify(tags) : task.tags,
+        coverImage,
+        type,
+        workspaceId,
+        templateId,
+        kbId,
+        variables: variables ? JSON.stringify(variables) : task.variables,
+        lastAccessedAt: new Date()
+      },
+      include: {
+        workspace: {
+          select: { id: true, name: true }
+        },
+        template: {
+          select: { id: true, name: true }
+        },
+        kb: {
+          select: { id: true, name: true }
+        },
+        _count: {
+          select: { prompts: true }
+        }
       }
     })
 
     res.json({
       code: 200,
-      message: '任务更新成功',
+      message: '项目更新成功',
       data: updatedTask
     })
   } catch (error) {
-    console.error('更新任务错误:', error)
+    console.error('更新项目错误:', error)
     res.status(500).json({
       code: 500,
       message: '服务器内部错误',
@@ -195,35 +273,90 @@ router.put('/:id', async (req, res) => {
   }
 })
 
-// 删除任务
+// 删除项目
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params
-    const userId = req.user.userId
 
-    const task = await prisma.task.findFirst({
-      where: { id, userId }
+    const task = await prisma.task.findUnique({
+      where: { id }
     })
 
     if (!task) {
       return res.status(404).json({
         code: 404,
-        message: '任务不存在',
+        message: '项目不存在',
         data: null
       })
     }
 
+    // 级联删除相关的Prompt
     await prisma.task.delete({
       where: { id }
     })
 
     res.json({
       code: 200,
-      message: '任务删除成功',
+      message: '项目删除成功',
       data: null
     })
   } catch (error) {
-    console.error('删除任务错误:', error)
+    console.error('删除项目错误:', error)
+    res.status(500).json({
+      code: 500,
+      message: '服务器内部错误',
+      data: null
+    })
+  }
+})
+
+// 获取项目统计信息
+router.get('/:id/stats', async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const task = await prisma.task.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: { prompts: true }
+        }
+      }
+    })
+
+    if (!task) {
+      return res.status(404).json({
+        code: 404,
+        message: '项目不存在',
+        data: null
+      })
+    }
+
+    // 获取Prompt状态统计
+    const promptStats = await prisma.prompt.groupBy({
+      by: ['status'],
+      where: { taskId: id },
+      _count: { status: true }
+    })
+
+    const stats = {
+      totalPrompts: task._count.prompts,
+      promptStatusCounts: promptStats.reduce((acc, stat) => {
+        acc[stat.status] = stat._count.status
+        return acc
+      }, {}),
+      lastAccessedAt: task.lastAccessedAt,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt
+    }
+
+    res.json({
+      code: 200,
+      message: '获取项目统计成功',
+      data: stats
+    })
+  } catch (error) {
+    console.error('获取项目统计错误:', error)
     res.status(500).json({
       code: 500,
       message: '服务器内部错误',

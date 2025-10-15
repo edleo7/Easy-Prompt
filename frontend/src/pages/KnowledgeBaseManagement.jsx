@@ -1,224 +1,321 @@
-import React, { useState } from 'react'
-import { Button, Input, Select, Typography, Card, Grid, Space, Tag, Avatar, Badge, Modal, Form, Message, Table, Switch, Divider, Tooltip, Upload, Progress } from '@arco-design/web-react'
-import { IconPlus, IconSearch, IconSend, IconEye, IconMessage as IconChat, IconThunderbolt, IconSettings, IconFile, IconFolder, IconDelete, IconEdit, IconEye as IconView, IconDownload, IconUpload, IconTag, IconCalendar, IconUser as IconAuthor } from '@arco-design/web-react/icon'
-import pureLogo from '../assets/images/品牌/纯logo.png'
+import React, { useState, useEffect } from 'react'
+import { Button, Input, Grid, Tabs, Modal, Form, Message, Spin, Empty, Upload } from '@arco-design/web-react'
+import { IconPlus, IconSearch, IconDown, IconUpload } from '@arco-design/web-react/icon'
 import AppLayout from '../components/AppLayout'
+import KnowledgeCard from '../components/KnowledgeBase/KnowledgeCard'
+import CoverUploader from '../components/KnowledgeBase/CoverUploader'
+import { 
+  getKnowledgeBases, 
+  createKnowledgeBase, 
+  updateKnowledgeBase, 
+  deleteKnowledgeBase 
+} from '../services/knowledgeBase'
 
-const { Title, Text } = Typography
 const { Row, Col } = Grid
+const TabPane = Tabs.TabPane
+const FormItem = Form.Item
 
 export default function KnowledgeBaseManagement({ currentPage, setCurrentPage }) {
+  const [knowledgeBases, setKnowledgeBases] = useState([])
+  const [loading, setLoading] = useState(false)
   const [searchValue, setSearchValue] = useState('')
-  const [filterCategory, setFilterCategory] = useState('all')
-  const [filterStatus, setFilterStatus] = useState('all')
+  const [activeTab, setActiveTab] = useState('all')
+  const [createModalVisible, setCreateModalVisible] = useState(false)
+  const [editModalVisible, setEditModalVisible] = useState(false)
+  const [currentKb, setCurrentKb] = useState(null)
+  const [form] = Form.useForm()
+  const [editForm] = Form.useForm()
+  const [coverUrl, setCoverUrl] = useState(null)
 
-  // 模拟知识库数据
-  const knowledgeData = [
-    {
-      id: 1,
-      title: 'AI Prompt 最佳实践指南',
-      category: '技术文档',
-      status: 'published',
-      author: '张三',
-      createdAt: '2024-01-15',
-      updatedAt: '2024-01-20',
-      views: 1250,
-      downloads: 89
-    },
-    {
-      id: 2,
-      title: 'React 开发规范',
-      category: '开发规范',
-      status: 'draft',
-      author: '李四',
-      createdAt: '2024-01-10',
-      updatedAt: '2024-01-18',
-      views: 890,
-      downloads: 45
-    },
-    {
-      id: 3,
-      title: '产品设计原则',
-      category: '设计规范',
-      status: 'published',
-      author: '王五',
-      createdAt: '2024-01-05',
-      updatedAt: '2024-01-12',
-      views: 2100,
-      downloads: 156
+  // 加载知识库列表
+  const loadKnowledgeBases = async () => {
+    setLoading(true)
+    try {
+      const response = await getKnowledgeBases({ 
+        search: searchValue,
+        // 这里可以根据activeTab过滤
+      })
+      
+      if (response.code === 200) {
+        setKnowledgeBases(response.data.knowledgeBases)
+      }
+    } catch (error) {
+      console.error('加载知识库失败:', error)
+      Message.error('加载知识库失败')
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
 
-  const columns = [
-    {
-      title: '文档标题',
-      dataIndex: 'title',
-      key: 'title',
-      render: (text, record) => (
-        <div>
-          <div style={{ fontWeight: 500, marginBottom: 4 }}>{text}</div>
-          <Tag color="blue" size="small">{record.category}</Tag>
-        </div>
-      )
-    },
-    {
-      title: '作者',
-      dataIndex: 'author',
-      key: 'author',
-      render: (author) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Avatar size={24} style={{ backgroundColor: '#165dff' }}>
-            {author.charAt(0)}
-          </Avatar>
-          <span>{author}</span>
-        </div>
-      )
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => (
-        <Tag color={status === 'published' ? 'green' : 'orange'}>
-          {status === 'published' ? '已发布' : '草稿'}
-        </Tag>
-      )
-    },
-    {
-      title: '浏览量',
-      dataIndex: 'views',
-      key: 'views',
-      render: (views) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <IconEye style={{ fontSize: 12, color: '#86909c' }} />
-          <span>{views}</span>
-        </div>
-      )
-    },
-    {
-      title: '下载量',
-      dataIndex: 'downloads',
-      key: 'downloads',
-      render: (downloads) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <IconDownload style={{ fontSize: 12, color: '#86909c' }} />
-          <span>{downloads}</span>
-        </div>
-      )
-    },
-    {
-      title: '操作',
-      key: 'actions',
-      render: (_, record) => (
-        <Space>
-          <Button type="text" size="small" icon={<IconView />} />
-          <Button type="text" size="small" icon={<IconEdit />} />
-          <Button type="text" size="small" icon={<IconDelete />} />
-        </Space>
-      )
+  useEffect(() => {
+    loadKnowledgeBases()
+  }, [searchValue])
+
+  // 创建知识库
+  const handleCreate = async (values) => {
+    try {
+      const response = await createKnowledgeBase({
+        ...values,
+        workspaceId: 'default-workspace', // 临时使用默认工作空间
+        tags: values.tags ? values.tags.split(',').map(t => t.trim()) : []
+      })
+
+      if (response.code === 201) {
+        Message.success('知识库创建成功')
+        setCreateModalVisible(false)
+        form.resetFields()
+        loadKnowledgeBases()
+      }
+    } catch (error) {
+      console.error('创建失败:', error)
+      Message.error('创建知识库失败')
     }
-  ]
+  }
+
+  // 编辑知识库
+  const handleEdit = (kb) => {
+    setCurrentKb(kb)
+    editForm.setFieldsValue({
+      name: kb.name,
+      description: kb.description,
+      tags: kb.tags?.join(', ') || '',
+      coverImage: kb.coverImage
+    })
+    setEditModalVisible(true)
+  }
+
+  // 更新知识库
+  const handleUpdate = async (values) => {
+    try {
+      const response = await updateKnowledgeBase(currentKb.id, {
+        ...values,
+        tags: values.tags ? values.tags.split(',').map(t => t.trim()) : []
+      })
+
+      if (response.code === 200) {
+        Message.success('更新成功')
+        setEditModalVisible(false)
+        editForm.resetFields()
+        loadKnowledgeBases()
+      }
+    } catch (error) {
+      console.error('更新失败:', error)
+      Message.error('更新失败')
+    }
+  }
+
+  // 删除知识库
+  const handleDelete = async (kb) => {
+    try {
+      const response = await deleteKnowledgeBase(kb.id)
+      
+      if (response.code === 200) {
+        Message.success('删除成功')
+        loadKnowledgeBases()
+      }
+    } catch (error) {
+      console.error('删除失败:', error)
+      Message.error('删除失败')
+    }
+  }
+
+  // 打开知识库详情
+  const handleCardClick = (kb) => {
+    // 跳转到知识库详情页
+    setCurrentPage(`knowledge-detail-${kb.id}`)
+  }
 
   return (
     <AppLayout 
       currentPage={currentPage} 
       setCurrentPage={setCurrentPage}
-      pageTitle="知识库管理"
-      pageSubtitle="管理您的知识库"
+      pageTitle="知识库"
+      pageSubtitle="管理您的知识库文档"
     >
-      {/* 操作栏 */}
-      <Card style={{ marginBottom: 24, borderRadius: 12 }}>
-        <Row gutter={16} align="middle">
-          <Col span={8}>
-            <Input
-              placeholder="搜索知识库..."
-              value={searchValue}
-              onChange={setSearchValue}
-              prefix={<IconSearch />}
+      {/* 顶部操作栏 */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: 24 
+      }}>
+        <Tabs 
+          activeTab={activeTab} 
+          onChange={setActiveTab}
+          type="rounded"
+        >
+          <TabPane key="all" title="全部知识库" />
+          <TabPane key="archived" title="离职文档库" />
+        </Tabs>
+
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <Input
+            style={{ width: 240 }}
+            placeholder="搜索知识库..."
+            value={searchValue}
+            onChange={setSearchValue}
+            prefix={<IconSearch />}
+            allowClear
+          />
+          <Button 
+            type="primary" 
+            icon={<IconPlus />}
+            onClick={() => setCreateModalVisible(true)}
+          >
+            新建知识库
+          </Button>
+          <Button icon={<IconDown />}>
+            新建
+          </Button>
+        </div>
+      </div>
+
+      {/* 知识库卡片网格 */}
+      <Spin loading={loading} style={{ display: 'block' }}>
+        {knowledgeBases.length > 0 ? (
+          <Row gutter={[16, 16]}>
+            {knowledgeBases.map((kb) => (
+              <Col key={kb.id} xs={24} sm={12} md={8} lg={6} xl={6}>
+                <KnowledgeCard
+                  knowledgeBase={kb}
+                  onClick={handleCardClick}
+                  onEdit={handleEdit}
+                  onSettings={(kb) => Message.info('设置功能开发中')}
+                  onDelete={handleDelete}
+                />
+              </Col>
+            ))}
+          </Row>
+        ) : (
+          <Empty 
+            description={searchValue ? '未找到匹配的知识库' : '暂无知识库，点击右上角创建'}
+            style={{ marginTop: 100 }}
+          />
+        )}
+      </Spin>
+
+      {/* 创建知识库对话框 */}
+      <Modal
+        title="新建知识库"
+        visible={createModalVisible}
+        onOk={() => form.submit()}
+        onCancel={() => {
+          setCreateModalVisible(false)
+          form.resetFields()
+        }}
+        okText="创建"
+        cancelText="取消"
+        style={{ width: 600 }}
+      >
+        <Form
+          form={form}
+          onSubmit={handleCreate}
+          layout="vertical"
+          autoComplete="off"
+        >
+          <FormItem 
+            label="知识库名称" 
+            field="name" 
+            rules={[{ required: true, message: '请输入知识库名称' }]}
+          >
+            <Input placeholder="请输入知识库名称" />
+          </FormItem>
+          
+          <FormItem 
+            label="描述" 
+            field="description"
+          >
+            <Input.TextArea 
+              placeholder="请输入描述（选填）" 
+              rows={3}
             />
-          </Col>
-          <Col span={4}>
-            <Select
-              placeholder="分类"
-              value={filterCategory}
-              onChange={setFilterCategory}
-            >
-              <Select.Option value="all">全部分类</Select.Option>
-              <Select.Option value="技术文档">技术文档</Select.Option>
-              <Select.Option value="开发规范">开发规范</Select.Option>
-              <Select.Option value="设计规范">设计规范</Select.Option>
-            </Select>
-          </Col>
-          <Col span={4}>
-            <Select
-              placeholder="状态"
-              value={filterStatus}
-              onChange={setFilterStatus}
-            >
-              <Select.Option value="all">全部状态</Select.Option>
-              <Select.Option value="published">已发布</Select.Option>
-              <Select.Option value="draft">草稿</Select.Option>
-            </Select>
-          </Col>
-          <Col span={8} style={{ textAlign: 'right' }}>
-            <Button 
-              type="primary" 
-              icon={<IconPlus />}
-            >
-              新建文档
-            </Button>
-          </Col>
-        </Row>
-      </Card>
+          </FormItem>
 
-      {/* 知识库统计 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col span={6}>
-          <Card style={{ textAlign: 'center', borderRadius: 12 }}>
-            <div style={{ fontSize: 24, fontWeight: 600, color: '#165dff', marginBottom: 8 }}>
-              {knowledgeData.length}
-            </div>
-            <div style={{ color: '#86909c' }}>总文档数</div>
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card style={{ textAlign: 'center', borderRadius: 12 }}>
-            <div style={{ fontSize: 24, fontWeight: 600, color: '#00b42a', marginBottom: 8 }}>
-              {knowledgeData.filter(item => item.status === 'published').length}
-            </div>
-            <div style={{ color: '#86909c' }}>已发布</div>
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card style={{ textAlign: 'center', borderRadius: 12 }}>
-            <div style={{ fontSize: 24, fontWeight: 600, color: '#ff7d00', marginBottom: 8 }}>
-              {knowledgeData.reduce((sum, item) => sum + item.views, 0)}
-            </div>
-            <div style={{ color: '#86909c' }}>总浏览量</div>
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card style={{ textAlign: 'center', borderRadius: 12 }}>
-            <div style={{ fontSize: 24, fontWeight: 600, color: '#722ed1', marginBottom: 8 }}>
-              {knowledgeData.reduce((sum, item) => sum + item.downloads, 0)}
-            </div>
-            <div style={{ color: '#86909c' }}>总下载量</div>
-          </Card>
-        </Col>
-      </Row>
+          <FormItem 
+            label="标签" 
+            field="tags"
+          >
+            <Input 
+              placeholder="多个标签用逗号分隔，如：技术,产品,设计" 
+            />
+          </FormItem>
 
-      {/* 知识库列表 */}
-      <Card style={{ borderRadius: 12 }}>
-        <Table
-          columns={columns}
-          data={knowledgeData}
-          pagination={{
-            pageSize: 10,
-            showTotal: true
-          }}
-          rowKey="id"
-        />
-      </Card>
+          <FormItem 
+            label="封面图" 
+            field="coverImage"
+          >
+            <CoverUploader
+              kbId={null}
+              currentCover={coverUrl}
+              onUploadSuccess={(url) => {
+                setCoverUrl(url)
+                form.setFieldValue('coverImage', url)
+              }}
+            />
+          </FormItem>
+        </Form>
+      </Modal>
+
+      {/* 编辑知识库对话框 */}
+      <Modal
+        title="编辑知识库"
+        visible={editModalVisible}
+        onOk={() => editForm.submit()}
+        onCancel={() => {
+          setEditModalVisible(false)
+          editForm.resetFields()
+        }}
+        okText="保存"
+        cancelText="取消"
+        style={{ width: 600 }}
+      >
+        <Form
+          form={editForm}
+          onSubmit={handleUpdate}
+          layout="vertical"
+          autoComplete="off"
+        >
+          <FormItem 
+            label="知识库名称" 
+            field="name" 
+            rules={[{ required: true, message: '请输入知识库名称' }]}
+          >
+            <Input placeholder="请输入知识库名称" />
+          </FormItem>
+          
+          <FormItem 
+            label="描述" 
+            field="description"
+          >
+            <Input.TextArea 
+              placeholder="请输入描述（选填）" 
+              rows={3}
+            />
+          </FormItem>
+
+          <FormItem 
+            label="标签" 
+            field="tags"
+          >
+            <Input 
+              placeholder="多个标签用逗号分隔，如：技术,产品,设计" 
+            />
+          </FormItem>
+
+          <FormItem 
+            label="封面图" 
+            field="coverImage"
+          >
+            <CoverUploader
+              kbId={currentKb?.id}
+              currentCover={currentKb?.coverImage}
+              onUploadSuccess={(url) => {
+                editForm.setFieldValue('coverImage', url)
+              }}
+            />
+          </FormItem>
+        </Form>
+      </Modal>
     </AppLayout>
   )
 }

@@ -74,8 +74,36 @@ model Task {
   kb           KnowledgeBase? @relation(fields: [kbId], references: [id])
   variables    String?   // JSON string
   createdById  String
+  
+  // 新增项目管理字段
+  description  String?   // 项目描述
+  status       String    @default("draft") // draft/active/completed/archived
+  tags         String?   // JSON数组，标签
+  coverImage   String?   // 封面图URL
+  promptCount  Int       @default(0) // Prompt数量统计
+  lastAccessedAt DateTime? // 最后访问时间
+  
+  // 关联关系
+  prompts      Prompt[]  // 项目下的Prompt列表
+  
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+}
+
+model Prompt {
+  id           String   @id @default(cuid())
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  name         String   // Prompt名称
+  content      String   // Prompt内容
+  version      Int      @default(1) // 版本号
+  variables    String?  // 变量配置（JSON）
+  kbReferences String?  // 知识库引用（JSON）
+  status       String   @default("draft") // draft/published
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@index([taskId])
 }
 
 model Template {
@@ -98,9 +126,14 @@ model KnowledgeBase {
   id           String   @id @default(cuid())
   name         String
   description  String?
+  coverImage   String?  // 封面图URL
+  tags         String?  // JSON数组，标签
+  fileCount    Int      @default(0) // 文档数量
+  collaborators String? // JSON数组，协作者ID
   workspaceId  String
   workspace    Workspace @relation(fields: [workspaceId], references: [id])
   files        File[]
+  folders      Folder[]
   tasks        Task[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -110,12 +143,32 @@ model File {
   id           String   @id @default(cuid())
   kbId         String
   kb           KnowledgeBase @relation(fields: [kbId], references: [id])
+  folderId     String?
+  folder       Folder?  @relation(fields: [folderId], references: [id])
   name         String
   mimeType     String
   size         Int
   storageUrl   String
+  editorType   String   @default("markdown") // "markdown" | "richtext"
+  content      String?  // 文档内容
+  
+  // 新增字段：文件上传与多模态支持
+  fileType      String   @default("document") // 'document' | 'uploaded'
+  originalName  String?  // 原始文件名
+  fileFormat    String?  // pdf, docx, xlsx, jpg, mp4等
+  uploadUrl     String?  // 云存储URL
+  localPath     String?  // 开发环境本地路径
+  fileSize      Int?     // 文件大小（字节）
+  extractedText String?  // 提取的文本内容
+  thumbnail     String?  // 缩略图URL
+  metadata      String?  // JSON: {pages, duration, resolution等}
+  processingStatus String @default("pending") // pending, processing, completed, failed
+  
   chunks       DocChunk[]
+  fileChunks   FileChunk[] // 上传分片
+  knowledgeChunks KnowledgeChunk[] // 知识块
   createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model DocChunk {
@@ -208,4 +261,44 @@ model CreditLedger {
   reason       String
   workspace    Workspace @relation(fields: [workspaceId], references: [id])
   createdAt    DateTime @default(now())
+}
+
+model Folder {
+  id           String   @id @default(cuid())
+  name         String
+  kbId         String
+  kb           KnowledgeBase @relation(fields: [kbId], references: [id])
+  parentId     String?
+  parent       Folder?  @relation("FolderTree", fields: [parentId], references: [id])
+  children     Folder[] @relation("FolderTree")
+  files        File[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// 文件上传分片表
+model FileChunk {
+  id           String   @id @default(cuid())
+  fileId       String
+  file         File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  chunkIndex   Int      // 分片索引
+  chunkData    Bytes    // 分片数据
+  uploaded     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  
+  @@unique([fileId, chunkIndex])
+}
+
+// 知识块表（多模态知识提取）
+model KnowledgeChunk {
+  id           String   @id @default(cuid())
+  fileId       String
+  file         File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  type         String   // text, image, table, code
+  content      String   // 文本内容
+  metadata     String?  // JSON: {page, position, caption}
+  embedding    String?  // 向量（可选）
+  createdAt    DateTime @default(now())
+  
+  @@index([fileId])
 }

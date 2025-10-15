@@ -8,7 +8,9 @@ const PromptGenerate = lazy(() => import('./PromptGenerate'))
 const PromptDetail = lazy(() => import('./PromptDetail'))
 const MemoryManagement = lazy(() => import('./MemoryManagement'))
 const KnowledgeBaseManagement = lazy(() => import('./KnowledgeBaseManagement'))
+const KnowledgeBaseDetail = lazy(() => import('./KnowledgeBaseDetail'))
 const ProjectManagement = lazy(() => import('./ProjectManagement'))
+const ProjectDetail = lazy(() => import('./ProjectDetail'))
 const VariableManagement = lazy(() => import('./VariableManagement'))
 
 const { Title, Text } = Typography
@@ -33,7 +35,18 @@ export default function Home() {
     'my-subscription': null // 待实现
   }
 
-  const CurrentComponent = pageComponents[currentPage]
+  // 处理动态路由（如知识库详情页、项目详情页）
+  let CurrentComponent = pageComponents[currentPage]
+  
+  // 检查是否是知识库详情页
+  if (currentPage.startsWith('knowledge-detail-')) {
+    CurrentComponent = KnowledgeBaseDetail
+  }
+  
+  // 检查是否是项目详情页
+  if (currentPage.startsWith('project-detail-')) {
+    CurrentComponent = ProjectDetail
+  }
 
   // 如果选择了其他页面，渲染对应组件
   if (CurrentComponent) {

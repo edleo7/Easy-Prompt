@@ -17,6 +17,9 @@ import memoryRoutes from './api/memories.js'
 import promptRoutes from './api/prompts.js'
 import subscriptionRoutes from './api/subscriptions.js'
 import ocrRoutes from './api/ocr.js'
+import aiRoutes from './api/ai.js'
+import searchRoutes from './api/search.js'
+import knowledgeReferenceRoutes from './api/knowledgeReference.js'
 
 // 导入中间件
 import { errorHandler } from './utils/errorHandler.js'
@@ -35,6 +38,7 @@ import vectorDB from './services/vectorDatabase.js'
 import professionalFileParser from './services/professionalFileParser.js'
 import paymentGateway from './services/paymentGateway.js'
 import batchProcessingService from './services/batchProcessingService.js'
+import { getHybridSearchService } from './services/hybridSearch.js'
 
 dotenv.config()
 
@@ -76,6 +80,9 @@ app.use('/api/v1/memories', memoryRoutes)
 app.use('/api/v1/prompts', promptRoutes)
 app.use('/api/v1/subscriptions', subscriptionRoutes)
 app.use('/api/v1/ocr', ocrRoutes)
+app.use('/api/v1', aiRoutes)
+app.use('/api/v1', searchRoutes)
+app.use('/api/v1', knowledgeReferenceRoutes)
 
 // 错误处理
 app.use(errorMonitoringMiddleware)
@@ -92,9 +99,24 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 3002
 
-app.listen(PORT, () => {
+// 初始化搜索服务
+const initializeSearchService = async () => {
+  try {
+    console.log('🔍 混合搜索服务初始化中...')
+    const hybridSearch = getHybridSearchService()
+    await hybridSearch.initialize()
+    console.log('✅ 混合搜索服务初始化完成')
+  } catch (error) {
+    console.error('混合搜索服务初始化失败:', error)
+  }
+}
+
+app.listen(PORT, async () => {
   console.log(`🚀 服务器运行在端口 ${PORT}`)
   console.log(`📊 健康检查: http://localhost:${PORT}/health`)
+  
+  // 初始化搜索服务
+  await initializeSearchService()
 })
 
 // 优雅关闭

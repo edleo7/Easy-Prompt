@@ -1,6 +1,6 @@
 import { cache, cacheKeys } from './cache.js'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1'
 
 // 开发环境模拟数据（仅在后端不可用时使用）
 const DEV_MOCK_USER = {
@@ -383,6 +383,9 @@ export const authAPI = {
     window.location.reload()
   },
 }
+
+// 导出request函数供其他模块使用
+export { request }
 
 export default {
   projectAPI,

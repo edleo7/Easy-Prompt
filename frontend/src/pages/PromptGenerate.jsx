@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { Typography, Input, Button, Space, Select } from '@arco-design/web-react';
-import { IconPlus, IconMinus, IconUpload, IconQuestionCircle, IconDown } from '@arco-design/web-react/icon';
+import { Typography, Input, Button, Space, Select, Card, Message } from '@arco-design/web-react';
+import { IconPlus, IconMinus, IconUpload, IconQuestionCircle, IconDown, IconBook, IconSave } from '@arco-design/web-react/icon';
 import AppLayout from '../components/AppLayout';
+import KnowledgeReferenceEditor from '../components/PromptEditor/KnowledgeReferenceEditor';
+import PromptSaveSelector from '../components/Project/PromptSaveSelector';
+import { createProject, createPrompt } from '../services/project';
 
 const { Title, Text } = Typography;
 const Option = Select.Option;
@@ -9,11 +12,55 @@ const Option = Select.Option;
 export default function PromptGenerate({ currentPage, setCurrentPage }) {
   // 控制页面内容是否上移的状态
   const [contentMoved, setContentMoved] = useState(false);
+  // 知识库引用相关状态
+  const [promptContent, setPromptContent] = useState('');
+  const [showKnowledgeEditor, setShowKnowledgeEditor] = useState(false);
+  // 保存到项目相关状态
+  const [showSaveSelector, setShowSaveSelector] = useState(false);
+  const [promptName, setPromptName] = useState('');
+  const [saveLoading, setSaveLoading] = useState(false);
+  // Prompt相关状态
+  const [variables, setVariables] = useState([]);
+  const [knowledgeReferences, setKnowledgeReferences] = useState([]);
   // 处理帮助文档点击
   const handleHelpClick = () => {
     // 这里可以打开帮助文档页面或模态框
     console.log('打开帮助文档');
     // 示例：window.open('/help', '_blank');
+  };
+
+  // 处理保存到项目
+  const handleSaveToProject = async (projectId) => {
+    if (!promptContent.trim()) {
+      Message.warning('请先生成Prompt内容');
+      return;
+    }
+
+    setSaveLoading(true);
+    try {
+      const response = await createPrompt(projectId, {
+        name: promptName || '新生成的Prompt',
+        content: promptContent,
+        variables: variables,
+        kbReferences: knowledgeReferences,
+        status: 'draft'
+      });
+
+      if (response.code === 201) {
+        Message.success('Prompt已保存到项目');
+        setShowSaveSelector(false);
+        setPromptName('');
+        // 可以选择跳转到项目详情页
+        setCurrentPage(`project-detail-${projectId}`);
+      } else {
+        Message.error('Prompt保存失败');
+      }
+    } catch (error) {
+      console.error('保存Prompt到项目失败:', error);
+      Message.error('Prompt保存失败');
+    } finally {
+      setSaveLoading(false);
+    }
   };
   
   // 处理向下按钮点击
@@ -87,29 +134,69 @@ export default function PromptGenerate({ currentPage, setCurrentPage }) {
           flexDirection: 'column',
           gap: '16px'
         }}>
-          {/* 输入框 */}
-          <div style={{ position: 'relative' }}>
-            <Input.TextArea
-              placeholder="请输入..."
-              style={{
-                width: '100%',
-                minHeight: '120px',
-                padding: '16px 20px',
-                fontSize: '16px',
-                borderRadius: '12px',
-                border: '1px solid #e5e6eb',
-                backgroundColor: '#ffffff'
-              }}
-              autoSize={{ minRows: 3, maxRows: 6 }}
-            />
-            {/* 添加按钮到输入框内左右两侧 */}
-            <div style={{ position: 'absolute', bottom: '16px', left: '20px', display: 'flex', gap: '8px' }}>
-              <Button type="secondary" shape="circle" icon={<IconPlus />} />
+          {/* 知识库引用编辑器 */}
+          <Card style={{ marginBottom: 16 }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: 12 
+            }}>
+              <Title level={5} style={{ margin: 0 }}>
+                Prompt编辑器
+              </Title>
+              <Space>
+                <Button
+                  type="primary"
+                  icon={<IconSave />}
+                  onClick={() => setShowSaveSelector(true)}
+                  disabled={!promptContent.trim()}
+                >
+                  保存到项目
+                </Button>
+                <Button
+                  type="outline"
+                  icon={<IconBook />}
+                  onClick={() => setShowKnowledgeEditor(!showKnowledgeEditor)}
+                >
+                  {showKnowledgeEditor ? '隐藏' : '显示'}知识库引用
+                </Button>
+              </Space>
             </div>
-            <div style={{ position: 'absolute', bottom: '16px', right: '20px', display: 'flex', gap: '8px' }}>
-              <Button type="secondary" shape="circle" icon={<IconUpload />} onClick={handleUploadClick} />
-            </div>
-          </div>
+            
+            {showKnowledgeEditor ? (
+              <KnowledgeReferenceEditor
+                value={promptContent}
+                onChange={setPromptContent}
+                placeholder="输入Prompt内容，可以使用知识库引用语法..."
+              />
+            ) : (
+              <div style={{ position: 'relative' }}>
+                <Input.TextArea
+                  value={promptContent}
+                  onChange={setPromptContent}
+                  placeholder="请输入Prompt内容..."
+                  style={{
+                    width: '100%',
+                    minHeight: '120px',
+                    padding: '16px 20px',
+                    fontSize: '16px',
+                    borderRadius: '12px',
+                    border: '1px solid #e5e6eb',
+                    backgroundColor: '#ffffff'
+                  }}
+                  autoSize={{ minRows: 3, maxRows: 6 }}
+                />
+                {/* 添加按钮到输入框内左右两侧 */}
+                <div style={{ position: 'absolute', bottom: '16px', left: '20px', display: 'flex', gap: '8px' }}>
+                  <Button type="secondary" shape="circle" icon={<IconPlus />} />
+                </div>
+                <div style={{ position: 'absolute', bottom: '16px', right: '20px', display: 'flex', gap: '8px' }}>
+                  <Button type="secondary" shape="circle" icon={<IconUpload />} onClick={handleUploadClick} />
+                </div>
+              </div>
+            )}
+          </Card>
 
           {/* 输入框下方的按钮和选择器 */}
           <div style={{ 
@@ -259,6 +346,14 @@ export default function PromptGenerate({ currentPage, setCurrentPage }) {
           />
         </div>
       )}
+
+      {/* 保存Prompt到项目模态框 */}
+      <PromptSaveSelector
+        visible={showSaveSelector}
+        onClose={() => setShowSaveSelector(false)}
+        onSave={handleSaveToProject}
+        loading={saveLoading}
+      />
     </AppLayout>
   );
 }
