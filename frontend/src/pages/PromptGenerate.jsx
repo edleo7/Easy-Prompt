@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Typography, Input, Button, Space, Select, Card, Message } from '@arco-design/web-react';
-import { IconPlus, IconMinus, IconUpload, IconQuestionCircle, IconDown, IconBook, IconSave } from '@arco-design/web-react/icon';
+import { Typography, Input, Button, Space, Select, Card, Message, Dropdown } from '@arco-design/web-react';
+import { IconPlus, IconMinus, IconUpload, IconQuestionCircle, IconDown, IconBook, IconSave, IconSend, IconExpand, IconApps, IconList, IconNotification, IconCode } from '@arco-design/web-react/icon';
 import AppLayout from '../components/AppLayout';
 import KnowledgeReferenceEditor from '../components/PromptEditor/KnowledgeReferenceEditor';
 import PromptSaveSelector from '../components/Project/PromptSaveSelector';
@@ -22,6 +22,13 @@ export default function PromptGenerate({ currentPage, setCurrentPage }) {
   // Prompt相关状态
   const [variables, setVariables] = useState([]);
   const [knowledgeReferences, setKnowledgeReferences] = useState([]);
+  // 设计稿相关状态
+  const [selectedKnowledgeBase, setSelectedKnowledgeBase] = useState('');
+  const [selectedMemoryBank, setSelectedMemoryBank] = useState('');
+  const [selectedVariable, setSelectedVariable] = useState('');
+  const [promptMode, setPromptMode] = useState('auto'); // auto, thinking, fast
+  const [showDropdowns, setShowDropdowns] = useState(false);
+
   // 处理帮助文档点击
   const handleHelpClick = () => {
     // 这里可以打开帮助文档页面或模态框
@@ -67,285 +74,292 @@ export default function PromptGenerate({ currentPage, setCurrentPage }) {
   const handleMoveDown = () => {
     setContentMoved(true);
   };
-  
-  // 处理上传按钮点击，切换到Prompt详情页面
+
+  // 处理上传点击
   const handleUploadClick = () => {
-    setCurrentPage('prompt-detail');
+    console.log('上传文件');
   };
 
   return (
     <AppLayout
       currentPage={currentPage}
       setCurrentPage={setCurrentPage}
-      pageTitle="Prompt 生成"
-      pageSubtitle="智能生成 Prompt"
+      pageTitle="Prompt生成"
+      pageSubtitle="通过智能助手快速生成Prompt"
     >
-      {/* 帮助文档按钮 */}
-      <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 100 }}>
-        <Button
-          type="text"
-          icon={<IconQuestionCircle style={{ fontSize: '20px', color: '#888' }} />}
-          onClick={handleHelpClick}
-          style={{ 
-            padding: '4px 12px', 
-            borderRadius: '20px',
-            minWidth: 'auto',
-            color: '#888',
-            backgroundColor: 'rgba(255, 255, 255, 0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px'
-          }}
-        >
-          帮助文档
-        </Button>
-      </div>
-
-      {/* 左侧导航栏 */}
-      {/* 假设这里已经存在左侧导航栏组件 */}
-
-      {/* 主体内容区域 */}
+      {/* 主体内容区域 - 根据设计稿重新设计 */}
       <div style={{
+        position: 'relative',
+        minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        height: '100%',
-        // padding: '20px',
-        paddingTop: '50px',
-        transform: contentMoved ? 'translateY(0vh)' : 'translateY(0)',
-        transition: 'transform 0.3s ease'
+        padding: '40px 20px'
       }}>
-        {/* 标题区域 */}
+        {/* 顶部状态栏 */}
         <div style={{
-          textAlign: 'left', marginBottom: '10px', width: '100%',
-          maxWidth: '700px',
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          zIndex: 10
         }}>
-          <Title heading={2} style={{ fontSize: '36px', fontWeight: '700', margin: '0 0 16px 0' }}>
-            你好，
-          </Title>
+          <Button type="text" icon={<IconNotification />} style={{ position: 'relative' }}>
+            <span style={{
+              position: 'absolute',
+              top: '4px',
+              right: '4px',
+              width: '8px',
+              height: '8px',
+              backgroundColor: '#ff4d4f',
+              borderRadius: '50%'
+            }} />
+          </Button>
+          <Button type="text">升级</Button>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 12px',
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            borderRadius: '20px',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            <span>500</span>
+            <IconCode style={{ color: '#52c41a' }} />
+          </div>
         </div>
 
-        {/* 输入卡片 */}
-        <div style={{
+        {/* 主内容卡片 */}
+        <Card style={{
           width: '100%',
-          maxWidth: '700px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px'
+          maxWidth: '800px',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          padding: '40px'
         }}>
-          {/* 知识库引用编辑器 */}
-          <Card style={{ marginBottom: 16 }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              marginBottom: 12 
+          {/* 欢迎标题 */}
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+            <Title heading={2} style={{ 
+              fontSize: '32px', 
+              fontWeight: '700', 
+              margin: '0 0 8px 0',
+              color: '#1f2937'
             }}>
-              <Title level={5} style={{ margin: 0 }}>
-                Prompt编辑器
-              </Title>
-              <Space>
-                <Button
-                  type="primary"
-                  icon={<IconSave />}
-                  onClick={() => setShowSaveSelector(true)}
-                  disabled={!promptContent.trim()}
-                >
-                  保存到项目
-                </Button>
-                <Button
-                  type="outline"
-                  icon={<IconBook />}
-                  onClick={() => setShowKnowledgeEditor(!showKnowledgeEditor)}
-                >
-                  {showKnowledgeEditor ? '隐藏' : '显示'}知识库引用
-                </Button>
-              </Space>
-            </div>
-            
-            {showKnowledgeEditor ? (
-              <KnowledgeReferenceEditor
+              你好,欢迎使用EasyPrompt!
+            </Title>
+          </div>
+
+          {/* 主输入区域 */}
+          <div style={{ marginBottom: '24px' }}>
+            <div style={{ position: 'relative' }}>
+              <Input.TextArea
                 value={promptContent}
                 onChange={setPromptContent}
-                placeholder="输入Prompt内容，可以使用知识库引用语法..."
+                placeholder="Please enter..."
+                style={{
+                  width: '100%',
+                  minHeight: '120px',
+                  padding: '20px 24px',
+                  fontSize: '16px',
+                  borderRadius: '16px',
+                  border: '2px solid #e5e7eb',
+                  backgroundColor: '#ffffff',
+                  resize: 'none'
+                }}
+                autoSize={{ minRows: 4, maxRows: 8 }}
               />
-            ) : (
-              <div style={{ position: 'relative' }}>
-                <Input.TextArea
-                  value={promptContent}
-                  onChange={setPromptContent}
-                  placeholder="请输入Prompt内容..."
-                  style={{
-                    width: '100%',
-                    minHeight: '120px',
-                    padding: '16px 20px',
-                    fontSize: '16px',
-                    borderRadius: '12px',
-                    border: '1px solid #e5e6eb',
-                    backgroundColor: '#ffffff'
+              
+              {/* 输入框内的控制按钮 */}
+              <div style={{ 
+                position: 'absolute', 
+                bottom: '16px', 
+                left: '24px', 
+                display: 'flex', 
+                gap: '8px' 
+              }}>
+                <Button 
+                  type="text" 
+                  shape="circle" 
+                  icon={<IconExpand />}
+                  style={{ 
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    border: 'none'
                   }}
-                  autoSize={{ minRows: 3, maxRows: 6 }}
                 />
-                {/* 添加按钮到输入框内左右两侧 */}
-                <div style={{ position: 'absolute', bottom: '16px', left: '20px', display: 'flex', gap: '8px' }}>
-                  <Button type="secondary" shape="circle" icon={<IconPlus />} />
-                </div>
-                <div style={{ position: 'absolute', bottom: '16px', right: '20px', display: 'flex', gap: '8px' }}>
-                  <Button type="secondary" shape="circle" icon={<IconUpload />} onClick={handleUploadClick} />
-                </div>
+                <Button 
+                  type="text" 
+                  shape="circle" 
+                  icon={<IconApps />}
+                  style={{ 
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    border: 'none'
+                  }}
+                />
+                <Button 
+                  type="text" 
+                  shape="circle" 
+                  icon={<IconList />}
+                  style={{ 
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    border: 'none'
+                  }}
+                />
               </div>
-            )}
-          </Card>
+            </div>
+          </div>
 
-          {/* 输入框下方的按钮和选择器 */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
+          {/* 模式选择和发送按钮 */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '0'
+            marginBottom: '24px'
           }}>
-            <Space size="medium">
-              <Button type="primary" style={{ borderRadius: '8px' }}>知识库</Button>
-              <Button type="primary" style={{ borderRadius: '8px' }}>变量库</Button>
+            <Space>
+              <Button
+                type={promptMode === 'auto' ? 'primary' : 'outline'}
+                onClick={() => setPromptMode('auto')}
+                style={{
+                  borderRadius: '20px',
+                  padding: '8px 16px'
+                }}
+              >
+                Auto
+              </Button>
+              <Button
+                type={promptMode === 'thinking' ? 'primary' : 'outline'}
+                onClick={() => setPromptMode('thinking')}
+                style={{
+                  borderRadius: '20px',
+                  padding: '8px 16px'
+                }}
+              >
+                Thinking
+              </Button>
+              <Button
+                type={promptMode === 'fast' ? 'primary' : 'outline'}
+                onClick={() => setPromptMode('fast')}
+                style={{
+                  borderRadius: '20px',
+                  padding: '8px 16px'
+                }}
+              >
+                Fast
+              </Button>
             </Space>
-            <Select placeholder="请选择" style={{ width: 160 }} allowClear>
-              <Option value="option1">选项1</Option>
-              <Option value="option2">选项2</Option>
-              <Option value="option3">选项3</Option>
-            </Select>
+            
+            <Button
+              type="primary"
+              icon={<IconSend />}
+              size="large"
+              style={{
+                borderRadius: '20px',
+                padding: '12px 24px',
+                fontSize: '16px',
+                fontWeight: '600'
+              }}
+            >
+              发送
+            </Button>
           </div>
-        </div>
+
+          {/* 下拉选择器区域 */}
+          <div style={{
+            display: 'flex',
+            gap: '16px',
+            flexWrap: 'wrap',
+            justifyContent: 'center'
+          }}>
+            {/* 知识库选择器 */}
+            <Dropdown
+              droplist={
+                <div style={{ padding: '8px 0', minWidth: '200px' }}>
+                  <div style={{ padding: '8px 16px', color: '#6b7280', fontSize: '12px' }}>知识库</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>知识库1</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>知识库2</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>知识库3</div>
+                </div>
+              }
+              trigger="click"
+            >
+              <Button
+                type="outline"
+                style={{
+                  borderRadius: '12px',
+                  padding: '12px 20px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white'
+                }}
+              >
+                知识库 <IconDown style={{ marginLeft: '8px' }} />
+              </Button>
+            </Dropdown>
+
+            {/* 记忆库选择器 */}
+            <Dropdown
+              droplist={
+                <div style={{ padding: '8px 0', minWidth: '200px' }}>
+                  <div style={{ padding: '8px 16px', color: '#6b7280', fontSize: '12px' }}>记忆库</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>记忆库1</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>记忆库2</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>记忆库3</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>记忆库4</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>记忆库5</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>记忆库6</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>记忆库7</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>记忆库8</div>
+                </div>
+              }
+              trigger="click"
+            >
+              <Button
+                type="outline"
+                style={{
+                  borderRadius: '12px',
+                  padding: '12px 20px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white'
+                }}
+              >
+                记忆库 <IconDown style={{ marginLeft: '8px' }} />
+              </Button>
+            </Dropdown>
+
+            {/* 变量库选择器 */}
+            <Dropdown
+              droplist={
+                <div style={{ padding: '8px 0', minWidth: '200px' }}>
+                  <div style={{ padding: '8px 16px', color: '#6b7280', fontSize: '12px' }}>变量库</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>变量库1</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>变量库2</div>
+                  <div style={{ padding: '8px 16px', cursor: 'pointer', hover: { backgroundColor: '#f3f4f6' } }}>变量库3</div>
+                </div>
+              }
+              trigger="click"
+            >
+              <Button
+                type="outline"
+                style={{
+                  borderRadius: '12px',
+                  padding: '12px 20px',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white'
+                }}
+              >
+                变量库 <IconDown style={{ marginLeft: '8px' }} />
+              </Button>
+            </Dropdown>
+          </div>
+        </Card>
       </div>
-      
-      {/* 图片展示区域 - 仅在内容移动后显示 */}
-      {contentMoved && (
-        <div style={{ 
-          marginTop: '100px',
-          width: '100%',
-          maxWidth: '700px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '20px',
-          margin: '100px auto 0'
-        }}>
-          {/* 第一行图片 */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            gap: '20px',
-            width: '100%'
-          }}>
-            <div style={{ 
-              width: 'calc((100% - 40px) / 3)', 
-              aspectRatio: '1/1',
-              backgroundColor: '#f0f0f0',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '60px'
-            }}>
-              🖼️
-            </div>
-            <div style={{ 
-              width: 'calc((100% - 40px) / 3)', 
-              aspectRatio: '1/1',
-              backgroundColor: '#f0f0f0',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '60px'
-            }}>
-              🖼️
-            </div>
-            <div style={{ 
-              width: 'calc((100% - 40px) / 3)', 
-              aspectRatio: '1/1',
-              backgroundColor: '#f0f0f0',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '60px'
-            }}>
-              🖼️
-            </div>
-          </div>
-          
-          {/* 第二行图片 */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            gap: '20px',
-            width: '100%'
-          }}>
-            <div style={{ 
-              width: 'calc((100% - 40px) / 3)', 
-              aspectRatio: '1/1',
-              backgroundColor: '#f0f0f0',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '60px'
-            }}>
-              🖼️
-            </div>
-            <div style={{ 
-              width: 'calc((100% - 40px) / 3)', 
-              aspectRatio: '1/1',
-              backgroundColor: '#f0f0f0',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '60px'
-            }}>
-              🖼️
-            </div>
-            <div style={{ 
-              width: 'calc((100% - 40px) / 3)', 
-              aspectRatio: '1/1',
-              backgroundColor: '#f0f0f0',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '60px'
-            }}>
-              🖼️
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* 向下按钮 - 仅在内容未移动时显示 */}
-      {!contentMoved && (
-        <div style={{ 
-          position: 'absolute', 
-          bottom: '20px', 
-          left: '50%', 
-          transform: 'translateX(-50%)',
-          zIndex: 100 
-        }}>
-          <Button
-            type="text"
-            icon={<IconDown style={{ fontSize: '24px', color: '#888' }} />}
-            onClick={handleMoveDown}
-            style={{ 
-              padding: '8px',
-              borderRadius: '50%',
-              minWidth: 'auto',
-              backgroundColor: 'rgba(255, 255, 255, 0.7)',
-              width: '44px',
-              height: '44px'
-            }}
-          />
-        </div>
-      )}
 
       {/* 保存Prompt到项目模态框 */}
       <PromptSaveSelector

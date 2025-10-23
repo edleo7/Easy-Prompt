@@ -4,6 +4,7 @@ import { authAPI } from '../services/api'
 import Sidebar from './Layout/Sidebar'
 import LoginModal from './LoginModal'
 import UserMenu from './UserMenu'
+import backgroundImage from '../assets/images/背景/背景底图.png'
 
 const { Content } = Layout
 
@@ -126,7 +127,11 @@ export default function AppLayout({
       
       <Content style={{ 
         padding: '32px', 
-        background: '#f7f8fa', 
+        background: `linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%), url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
         flex: 1, 
         overflow: 'auto',
         display: 'flex',
